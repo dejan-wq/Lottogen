@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Euro Lotto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e8ecf2;--surface:#ffffff;--ink:#0d1b2a;--muted:#5a6a7e;--line:#d3dae5;
+  --brand:#0b3d6b;--brand-ink:#ffffff;--ball-a:#1a5a9a;--ball-b:#0a2f57;--ball-ink:#ffffff;
+  --star-a:#ecc962;--star-b:#b8861f;--star-ink:#3b2a05;--ok:#2c7a58;--hit:#b3261e;--focus:#1a5a9a;
+  --display:"Newsreader",Georgia,"Times New Roman",serif;--ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --b:clamp(28px,9vw,38px);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#09111b;--surface:#111c2b;--ink:#e7edf6;--muted:#8d9eb3;--line:#223247;
+    --brand:#6aa3e8;--brand-ink:#06111f;--ball-a:#4d8ede;--ball-b:#2559a0;--ball-ink:#ffffff;
+    --ok:#4fb88a;--hit:#ff7a70;--focus:#6aa3e8;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#09111b;--surface:#111c2b;--ink:#e7edf6;--muted:#8d9eb3;--line:#223247;
+  --brand:#6aa3e8;--brand-ink:#06111f;--ball-a:#4d8ede;--ball-b:#2559a0;--ball-ink:#ffffff;
+  --ok:#4fb88a;--hit:#ff7a70;--focus:#6aa3e8;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--ui);font-variant-numeric:tabular-nums lining-nums}
+main{max-width:480px;margin:0 auto;padding:22px 14px 36px}
+button,input,textarea,summary{font-family:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+.masthead{padding:4px 4px 18px}
+h1{font:600 30px/1.1 var(--display);letter-spacing:-.01em;margin:0}
+.masthead p{margin:6px 0 0;color:var(--muted);font-size:14px}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);padding:11px 8px;border-radius:9px;font-weight:500;font-size:15px;cursor:pointer}
+.seg button.on{background:var(--brand);color:var(--brand-ink);font-weight:600}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 16px 16px}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.setting .txt{min-width:0}
+.setting .name{font-size:15px;font-weight:500}
+.setting .desc{font-size:13px;color:var(--muted);margin-top:1px}
+.step{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:10px;padding:2px}
+.step button{width:34px;height:34px;border:0;background:transparent;color:var(--ink);font-size:20px;border-radius:8px;cursor:pointer}
+.step button:active{background:var(--bg)}
+.step span{min-width:28px;text-align:center;font-weight:600}
+.sw{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:background .15s;margin:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.sw:checked{background:var(--brand)}
+.sw:checked::after{transform:translateX(18px)}
+.status{font-size:13px;color:var(--muted);padding:12px 0 2px}
+.go{width:100%;margin-top:12px;border:0;background:var(--brand);color:var(--brand-ink);padding:16px;border-radius:12px;font-size:16px;font-weight:600;letter-spacing:.01em;cursor:pointer}
+.go:active{filter:brightness(.93)}
+
+.ticket{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:22px;margin:18px 0 6px;padding:14px 14px 0;overflow:hidden}
+.ticket .head{display:flex;align-items:baseline;justify-content:space-between;padding:2px 2px 8px}
+.ticket .head h2{font:600 19px/1.2 var(--display);margin:0}
+.ticket .head span{font-size:13px;color:var(--muted)}
+.line{display:flex;align-items:center;gap:4px;padding:11px 0;border-top:1px solid var(--line);animation:rise .32s ease-out both;animation-delay:calc(var(--i,0) * 60ms)}
+.lab{width:16px;flex:none;font:500 15px var(--display);color:var(--muted)}
+.ball,.star{flex:none;width:var(--b);height:var(--b);display:grid;place-items:center;font-weight:600;font-size:calc(var(--b) * .42)}
+.star{width:calc(var(--b) * 1.22);height:calc(var(--b) * 1.22);font-size:calc(var(--b) * .36)}
+.ball{border-radius:50%;color:var(--ball-ink);background:radial-gradient(circle at 32% 26%,var(--ball-a),var(--ball-b));box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 1px 2px rgba(10,30,60,.25)}
+.star{color:var(--star-ink);background:linear-gradient(160deg,var(--star-a),var(--star-b));clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);padding-top:calc(var(--b) * .14)}
+.sep{width:1px;height:calc(var(--b) * .6);background:var(--line);margin:0 5px;flex:none}
+.tfoot{position:relative;display:flex;gap:8px;padding:14px 0 14px;margin-top:2px;border-top:2px dashed var(--line)}
+.tfoot::before,.tfoot::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.tfoot::before{left:-24px}.tfoot::after{right:-24px}
+.ghost{flex:1;border:1px solid var(--line);background:transparent;color:var(--ink);padding:11px 12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;text-align:center}
+.ghost:active{background:var(--bg)}
+@keyframes rise{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.line{animation:none}.sw,.sw::after{transition:none}}
+
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-top:10px}
+summary{list-style:none;cursor:pointer;padding:15px 16px;font-weight:500;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-right:3px;transition:transform .15s}
+details[open] summary::after{transform:rotate(-135deg)}
+.inner{padding:0 16px 16px}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+textarea{width:100%;min-height:96px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btns .ghost{flex:1 1 auto}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}
+.kv span{color:var(--muted);flex:none}
+.kv b{font-weight:500;text-align:right}
+#statscard{margin-top:12px}
+.tests{margin-top:12px}
+.t{display:grid;grid-template-columns:1fr 64px 36px 10px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}
+.t:first-child{border-top:0}
+.bar{height:6px;border-radius:3px;background:var(--bg);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:3px}
+.tp{text-align:right;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%}
+.dot.ok{background:var(--ok)}.dot.hit{background:var(--hit)}
+.verdict{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:8px 0;padding:12px 14px;border-radius:10px;font-weight:600;font-size:14px;background:var(--bg);border-left:4px solid var(--ok)}
+.verdict.hit{border-left-color:var(--hit)}
+.verdict span{font-weight:400;font-size:12.5px;color:var(--muted)}
+.foot{text-align:center;color:var(--muted);font-size:12.5px;margin:22px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <header class="masthead">
+    <h1>Euro Lotto</h1>
+    <p>Number generator for EuroMillions and Eurojackpot</p>
+  </header>
+
+  <div class="seg" id="tabs">
+    <button data-g="euromillions" class="on">EuroMillions</button>
+    <button data-g="eurojackpot">Eurojackpot</button>
+  </div>
+
+  <section class="panel">
+    <div class="setting">
+      <div class="txt"><div class="name">Lines</div><div class="desc">Tickets to generate</div></div>
+      <div class="step"><button id="minus" aria-label="Fewer lines">&minus;</button><span id="n">5</span><button id="plus" aria-label="More lines">+</button></div>
+    </div>
+    <div class="setting">
+      <div class="txt"><div class="name">Skip common picks</div><div class="desc">Excludes birthday-range and sequential combinations</div></div>
+      <input type="checkbox" class="sw" id="avoid" checked aria-label="Skip common picks">
+    </div>
+    <div class="setting">
+      <div class="txt"><div class="name">Use draw history</div><div class="desc">Matches sum, odd/even and low/high of past draws</div></div>
+      <input type="checkbox" class="sw" id="usehist" checked aria-label="Use draw history">
+    </div>
+    <div class="status" id="histstatus">No history loaded.</div>
+    <button class="go" id="gen">Generate numbers</button>
+  </section>
+
+  <section class="ticket" id="results" hidden>
+    <div class="head"><h2>Your numbers</h2><span id="tgame"></span></div>
+    <div id="lines"></div>
+    <div class="tfoot"><button class="ghost" id="copy">Copy all</button><button class="ghost" id="again">Generate again</button></div>
+  </section>
+
+  <details>
+    <summary>Draw history</summary>
+    <div class="inner">
+      <p class="hint">Paste results or load a CSV from the lottery site. Each draw needs 5 numbers and 2 stars. Headers n1&ndash;n5 with s1, s2 (or e1, e2) work, as do plain lines of 7 numbers.</p>
+      <textarea id="hist" placeholder="5, 12, 24, 38, 45, 2, 9&#10;3, 14, 19, 33, 41, 5, 11"></textarea>
+      <div class="btns">
+        <button class="ghost" id="load">Use pasted data</button>
+        <label class="ghost" style="cursor:pointer">Choose CSV file<input type="file" id="file" accept=".csv,.txt" hidden></label>
+        <button class="ghost" id="clear">Clear</button>
+      </div>
+      <div id="statscard" hidden>
+        <div id="stats"></div>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Pattern check</summary>
+    <div class="inner">
+      <p class="hint">Tests your loaded history against simulated random draws across 15 measures. Needs 200 or more draws.</p>
+      <div class="btns"><button class="ghost" id="runtest">Run pattern check</button></div>
+      <div id="testout" style="margin-top:6px"></div>
+    </div>
+  </details>
+
+  <p class="foot">18+. Play responsibly.</p>
+</main>
+
+<script>
+const GAMES = {
+  euromillions: {pick:5, top:50, stars:2, starTop:12},
+  eurojackpot:  {pick:5, top:50, stars:2, starTop:12}
+};
+let game = "euromillions", count = 5, history = [], lastLines = [];
+
+const $ = id => document.getElementById(id);
+
+function rnd(max){ // unbiased random int in [0,max)
+  const lim = Math.floor(0x100000000 / max) * max, a = new Uint32Array(1);
+  do { crypto.getRandomValues(a); } while (a[0] >= lim);
+  return a[0] % max;
+}
+function sample(top, k){
+  const pool = Array.from({length: top}, (_, i) => i + 1), out = [];
+  for (let i = 0; i < k; i++) out.push(pool.splice(rnd(pool.length), 1)[0]);
+  return out.sort((a, b) => a - b);
+}
+
+// ANALYSIS START
+function simDraw(top,k){
+  const a=[];
+  while(a.length<k){const x=1+Math.floor(Math.random()*top);if(!a.includes(x))a.push(x);}
+  return a.sort((p,q)=>p-q);
+}
+function binOf(v,edges){let c=0;for(const e of edges)if(v>=e)c++;return c;}
+function featOf(m,top,prev){
+  const sum=m.reduce((a,b)=>a+b,0);
+  let consec=0,maxgap=0;
+  for(let i=1;i<m.length;i++){const g=m[i]-m[i-1];if(g===1)consec++;if(g>maxgap)maxgap=g;}
+  let rep=0;if(prev)for(const x of m)if(prev.includes(x))rep++;
+  return {
+    "Sum of numbers": binOf(sum,[90,110,125,140,160]),
+    "Odd/even split": m.filter(x=>x%2).length,
+    "Low/high split": m.filter(x=>x<=top/2).length,
+    "Consecutive pairs": Math.min(consec,2),
+    "Spread (max-min)": binOf(m[4]-m[0],[25,32,38,43,46]),
+    "Decades used": new Set(m.map(x=>Math.floor((x-1)/10))).size,
+    "Largest gap": binOf(maxgap,[8,12,16,20]),
+    "Repeated last digits": 5-new Set(m.map(x=>x%10)).size,
+    "Repeats from previous draw": Math.min(rep,2)
+  };
+}
+function tally(draws,top){
+  const t={};
+  draws.forEach((m,i)=>{const f=featOf(m,top,i?draws[i-1]:null);for(const k in f){t[k]=t[k]||{};t[k][f[k]]=(t[k][f[k]]||0)+1;}});
+  return t;
+}
+function chiOf(counts,probs,n){
+  let c=0;for(const key in probs){const e=probs[key]*n,o=counts[key]||0;if(e>0)c+=(o-e)*(o-e)/e;}return c;
+}
+function freqChi(draws,top){
+  const cnt=new Array(top+1).fill(0);draws.forEach(m=>m.forEach(x=>cnt[x]++));
+  const e=draws.length*5/top;let c=0;for(let i=1;i<=top;i++)c+=(cnt[i]-e)*(cnt[i]-e)/e;return c;
+}
+function pairInfo(draws,top){
+  const n=draws.length,W=top+1,cnt=new Int32Array(W*W);
+  draws.forEach(m=>{for(let i=0;i<5;i++)for(let j=i+1;j<5;j++)cnt[m[i]*W+m[j]]++;});
+  const p=20/(top*(top-1)),e=n*p,sd=Math.sqrt(n*p*(1-p));
+  let maxz=0,list=[];
+  for(let a=1;a<top;a++)for(let b=a+1;b<=top;b++){const z=Math.abs((cnt[a*W+b]-e)/sd);if(z>maxz)maxz=z;list.push([z,a,b,cnt[a*W+b]]);}
+  return {maxz,e,list};
+}
+function overdueHit(draws,top){
+  const last=new Int32Array(top+1).fill(-1);let hits=0,tot=0;
+  for(let t=0;t<draws.length;t++){
+    if(t>200){let best=1,bg=-1;for(let x=1;x<=top;x++){const g=last[x]<0?t+1:t-last[x];if(g>bg){bg=g;best=x;}}
+      if(draws[t].includes(best))hits++;tot++;}
+    draws[t].forEach(x=>last[x]=t);
+  }
+  return hits/tot;
+}
+function hotHit(draws,top,w){
+  w=w||50;const cnt=new Int32Array(top+1);let hits=0,tot=0;
+  for(let i=0;i<w;i++)draws[i].forEach(x=>cnt[x]++);
+  for(let t=w;t<draws.length;t++){
+    const idx=[];for(let x=1;x<=top;x++)idx.push(x);
+    idx.sort((a,b)=>cnt[b]-cnt[a]||a-b);
+    let h=0;for(let k=0;k<5;k++)if(draws[t].includes(idx[k]))h++;
+    hits+=h/5;tot++;
+    draws[t].forEach(x=>cnt[x]++);draws[t-w].forEach(x=>cnt[x]--);
+  }
+  return hits/tot;
+}
+function lagCorr(draws){
+  const s=draws.map(m=>m.reduce((a,b)=>a+b,0)),mu=s.reduce((a,b)=>a+b,0)/s.length,d=s.map(v=>v-mu);
+  let num=0,den=0;for(let i=0;i<d.length;i++){den+=d[i]*d[i];if(i)num+=d[i]*d[i-1];}return Math.abs(num/den);
+}
+function weekdayStat(draws,days,a,b,top){
+  const ca=new Array(top+1).fill(0),cb=new Array(top+1).fill(0);let na=0,nb=0;
+  draws.forEach((m,i)=>{if(days[i]===a){na++;m.forEach(x=>ca[x]++);}else if(days[i]===b){nb++;m.forEach(x=>cb[x]++);}});
+  let mz=0;
+  for(let x=1;x<=top;x++){const fa=ca[x]/na,fb=cb[x]/nb,p=(ca[x]+cb[x])/(na+nb),se=Math.sqrt(p*(1-p)*(1/na+1/nb));if(se>0)mz=Math.max(mz,Math.abs((fa-fb)/se));}
+  return mz;
+}
+function pv(obs,sims){let c=0;for(const v of sims)if(v>=obs)c++;return (c+1)/(sims.length+1);}
+function runAnalysis(full,top,K,Ks){
+  const draws=full.map(d=>d.m),n=draws.length;
+  const big=Array.from({length:40000},()=>simDraw(top,5)),bt=tally(big,top),probs={};
+  for(const k in bt){probs[k]={};for(const c in bt[k])probs[k][c]=bt[k][c]/big.length;}
+  const names=Object.keys(probs),obs=tally(draws,top);
+  const o={},sim={};
+  names.forEach(k=>{o[k]=chiOf(obs[k],probs[k],n);sim[k]=[];});
+  const P=pairInfo(draws,top);
+  o["Number frequency"]=freqChi(draws,top);sim["Number frequency"]=[];
+  o["Strongest pair"]=P.maxz;sim["Strongest pair"]=[];
+  o["Link to previous draw (sum)"]=lagCorr(draws);sim["Link to previous draw (sum)"]=[];
+  let days=null,da,db;
+  if(full.every(d=>d.d)){
+    days=full.map(d=>new Date(d.d+"T00:00:00Z").getUTCDay());
+    if(days.some(x=>Number.isNaN(x)))days=null;
+    else{const c={};days.forEach(x=>c[x]=(c[x]||0)+1);const top2=Object.keys(c).sort((x,y)=>c[y]-c[x]).slice(0,2).map(Number);
+      if(top2.length<2)days=null;else{da=top2[0];db=top2[1];o["Weekday difference"]=weekdayStat(draws,days,da,db,top);sim["Weekday difference"]=[];}}
+  }
+  const slowObs={"Overdue numbers hit next":Math.abs(overdueHit(draws,top)-0.1),"Hot numbers hit next":Math.abs(hotHit(draws,top)-0.1)};
+  const slowSim={"Overdue numbers hit next":[],"Hot numbers hit next":[]};
+  for(let r=0;r<K;r++){
+    const d=Array.from({length:n},()=>simDraw(top,5)),t=tally(d,top);
+    names.forEach(k=>sim[k].push(chiOf(t[k],probs[k],n)));
+    sim["Number frequency"].push(freqChi(d,top));
+    sim["Strongest pair"].push(pairInfo(d,top).maxz);
+    sim["Link to previous draw (sum)"].push(lagCorr(d));
+    if(days)sim["Weekday difference"].push(weekdayStat(d,days,da,db,top));
+    if(r<Ks){slowSim["Overdue numbers hit next"].push(Math.abs(overdueHit(d,top)-0.1));slowSim["Hot numbers hit next"].push(Math.abs(hotHit(d,top)-0.1));}
+  }
+  const res=[];
+  for(const k in o)res.push({name:k,p:pv(o[k],sim[k])});
+  for(const k in slowObs)res.push({name:k,p:pv(slowObs[k],slowSim[k])});
+  res.sort((a,b)=>a.p-b.p);
+  const m=res.length;let ok=true;
+  res.forEach((r,i)=>{r.thr=0.05/(m-i);if(ok&&r.p<r.thr)r.sig=true;else{ok=false;r.sig=false;}});
+  P.list.sort((x,y)=>y[0]-x[0]);
+  return {res,pairs:P.list.slice(0,3).map(x=>({a:x[1],b:x[2],c:x[3]})),exp:P.e,n};
+}
+// ANALYSIS END
+
+function parseHistory(text){
+  const rows = [], lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  let idx = null;
+  for (const line of lines){
+    const parts = line.split(/[,;\t ]+/).map(s => s.trim().replace(/^"|"$/g, ""));
+    if (!idx && parts.some(p => /^n1$/i.test(p))){
+      idx = {};
+      parts.forEach((p, i) => { idx[p.toLowerCase()] = i; });
+      continue;
+    }
+    let nums = null;
+    if (idx){
+      const g = [1,2,3,4,5].map(i => parseInt(parts[idx["n" + i]], 10));
+      const s = [1,2].map(i => parseInt(parts[idx["s" + i] !== undefined ? idx["s" + i] : idx["e" + i]], 10));
+      nums = g.concat(s);
+    } else {
+      const ints = parts.filter(p => /^\d{1,2}$/.test(p)).map(Number);
+      if (ints.length === 7) nums = ints;
+    }
+    if (nums && nums.length === 7 && nums.every(x => Number.isFinite(x) && x > 0)){
+      const dd = idx && idx.date !== undefined ? (parts[idx.date] || "").replace(/[^0-9-]/g, "") : "";
+      rows.push({m: nums.slice(0,5).sort((a,b)=>a-b), s: nums.slice(5).sort((a,b)=>a-b), d: /^\d{4}-\d{2}-\d{2}$/.test(dd) ? dd : null});
+    }
+  }
+  return rows;
+}
+
+function buildProfile(draws, g){
+  const sums = draws.map(d => d.m.reduce((a,b)=>a+b,0)).sort((a,b)=>a-b);
+  const lo = sums[Math.floor(sums.length*0.10)], hi = sums[Math.max(0, Math.floor(sums.length*0.90)-1)];
+  const half = g.top/2, odds = {}, lows = {};
+  draws.forEach(d => {
+    const o = d.m.filter(x => x%2).length, l = d.m.filter(x => x<=half).length;
+    odds[o] = (odds[o]||0)+1; lows[l] = (lows[l]||0)+1;
+  });
+  const common = c => new Set(Object.keys(c).filter(k => c[k]/draws.length >= 0.10).map(Number));
+  return {lo, hi, odds: common(odds), lows: common(lows), half};
+}
+
+function isPopular(m){
+  if (Math.max(...m) <= 31) return true;
+  const gaps = new Set(m.slice(1).map((x,i) => x - m[i]));
+  return gaps.size === 1;
+}
+
+function generateLines(){
+  const g = GAMES[game];
+  const useHist = $("usehist").checked && history.length >= 50;
+  const avoid = $("avoid").checked;
+  const prof = useHist ? buildProfile(history, g) : null;
+  const out = [];
+  for (let i = 0; i < count; i++){
+    let m, tries = 0;
+    do {
+      m = sample(g.top, g.pick); tries++;
+      if (tries > 20000) break;
+      if (avoid && isPopular(m)) continue;
+      if (prof){
+        const sum = m.reduce((a,b)=>a+b,0);
+        if (sum < prof.lo || sum > prof.hi) continue;
+        if (!prof.odds.has(m.filter(x=>x%2).length)) continue;
+        if (!prof.lows.has(m.filter(x=>x<=prof.half).length)) continue;
+      }
+      break;
+    } while (true);
+    out.push({m, s: sample(g.starTop, g.stars)});
+  }
+  return out;
+}
+
+function render(){
+  lastLines = generateLines();
+  const box = $("lines");
+  box.innerHTML = "";
+  lastLines.forEach((l, li) => {
+    const div = document.createElement("div"); div.className = "line"; div.style.setProperty("--i", li);
+    const lab = document.createElement("div"); lab.className = "lab"; lab.textContent = String.fromCharCode(65 + li); div.appendChild(lab);
+    l.m.forEach(x => { const b = document.createElement("div"); b.className = "ball"; b.textContent = x; div.appendChild(b); });
+    const sp = document.createElement("div"); sp.className = "sep"; div.appendChild(sp);
+    l.s.forEach(x => { const b = document.createElement("div"); b.className = "star"; b.textContent = x; div.appendChild(b); });
+    box.appendChild(div);
+  });
+  $("tgame").textContent = game === "euromillions" ? "EuroMillions" : "Eurojackpot";
+  $("results").hidden = false;
+}
+
+function updateHistoryUI(){
+  const g = GAMES[game];
+  if (history.length){
+    $("histstatus").textContent = history.length + " draws loaded" + (history.length < 50 ? " (need 50+ to use the profile)." : ". Profile active.");
+    const cnt = {};
+    history.forEach(d => d.m.forEach(x => cnt[x] = (cnt[x]||0)+1));
+    const ranked = Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+    const exp = (history.length * g.pick / g.top).toFixed(0);
+    $("stats").innerHTML =
+      '<div class="kv"><span>Expected per number</span><b>' + exp + '</b></div>' +
+      '<div class="kv"><span>Most drawn</span><b>' + ranked.slice(0,5).map(([k,v])=>k+" ("+v+")").join(", ") + '</b></div>' +
+      '<div class="kv"><span>Least drawn</span><b>' + ranked.slice(-5).map(([k,v])=>k+" ("+v+")").join(", ") + '</b></div>';
+    $("statscard").hidden = false;
+  } else {
+    $("histstatus").textContent = "No history loaded.";
+    $("statscard").hidden = true;
+  }
+}
+
+function setHistory(text){
+  history = parseHistory(text);
+  try { if (history.length) localStorage.setItem("elg_hist_" + game, text); else localStorage.removeItem("elg_hist_" + game); } catch(e){}
+  updateHistoryUI();
+  if (!history.length && text.trim()) $("histstatus").textContent = "Could not read any draws. Each line needs 7 numbers.";
+}
+
+function loadSaved(){
+  let text = "";
+  try { text = localStorage.getItem("elg_hist_" + game) || ""; } catch(e){}
+  $("hist").value = text;
+  history = text ? parseHistory(text) : [];
+  updateHistoryUI();
+}
+
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  game = b.dataset.g;
+  [...$("tabs").children].forEach(x => x.classList.toggle("on", x === b));
+  $("results").hidden = true;
+  loadSaved();
+});
+$("minus").onclick = () => { count = Math.max(1, count - 1); $("n").textContent = count; };
+$("plus").onclick  = () => { count = Math.min(20, count + 1); $("n").textContent = count; };
+$("gen").onclick = render;
+$("again").onclick = render;
+$("copy").onclick = async () => {
+  const txt = lastLines.map(l => l.m.join(" ") + " | " + l.s.join(" ")).join("\n");
+  try { await navigator.clipboard.writeText(txt); $("copy").textContent = "Copied"; }
+  catch(e){ $("copy").textContent = "Copy failed"; }
+  setTimeout(() => $("copy").textContent = "Copy all", 1500);
+};
+$("load").onclick = () => setHistory($("hist").value);
+$("clear").onclick = () => { $("hist").value = ""; setHistory(""); };
+$("file").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { $("hist").value = r.result; setHistory(r.result); };
+  r.readAsText(f);
+};
+
+$("runtest").onclick = () => {
+  const out = $("testout");
+  if (history.length < 200){ out.textContent = "Load at least 200 draws to run the check."; return; }
+  out.textContent = "Running simulation. This takes a few seconds.";
+  setTimeout(() => {
+    const g = GAMES[game];
+    const R = runAnalysis(history, g.top, 150, 60);
+    const any = R.res.some(r => r.sig);
+    out.innerHTML =
+      '<div class="tests">' + R.res.map(r =>
+        '<div class="t"><span class="tn">' + r.name + '</span>' +
+        '<span class="bar"><i style="width:' + Math.round(Math.min(1, r.p) * 100) + '%"></i></span>' +
+        '<span class="tp">' + r.p.toFixed(2) + '</span>' +
+        '<span class="dot ' + (r.sig ? 'hit' : 'ok') + '" title="' + (r.sig ? 'Unusual' : 'Within random range') + '"></span></div>'
+      ).join("") + '</div>' +
+      '<div class="verdict ' + (any ? 'hit' : 'ok') + '">' +
+      (any ? "Unusual result found" : "No test departs from randomness") +
+      '<span>' + R.res.length + ' tests, ' + R.n + ' draws</span></div>' +
+      '<div class="kv"><span>Strongest pairs</span><b>' + R.pairs.map(p => p.a + " & " + p.b + " (" + p.c + "x)").join(", ") + '</b></div>';
+  }, 50);
+};
+
+loadSaved();
+</script>
+</body>
+</html>
